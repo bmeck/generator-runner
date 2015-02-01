@@ -1,0 +1,36 @@
+{
+  "name": "generator-runner",
+  "version": "1.0.0",
+  "description": "like a more generic task.js",
+  "main": "out/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "traceur": "^0.0.82"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "prepublish": "traceur --dir ./lib ./out; traceur --dir ./test/lib ./test/out",
+    "pretest": "npm run prepublish",
+    "test": "node test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bmeck/generator-runner.git"
+  },
+  "keywords": [
+    "runner",
+    "task",
+    "generator",
+    "async",
+    "control",
+    "flow"
+  ],
+  "author": "bradleymeck",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bmeck/generator-runner/issues"
+  },
+  "homepage": "https://github.com/bmeck/generator-runner"
+}
