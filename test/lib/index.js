@@ -76,6 +76,41 @@ function* task(step) {
     assert(false);
   };
 
+  // test skipping
+  yield null;
+  yield undefined;
+
+  // test timing consistency
+  let done = 0
+  yield [
+    _ => {done+=1;_()},
+    _ => {done+=1;_()}  
+  ]
+  assert(done == 2);
+
+  // test concurrency runner
+  let running = 0;
+  let concurrency = 2;
+
+  function run(_) {
+    running += 1;
+    assert(running <= concurrency);
+    _(null, running);
+  }    
+  runner.concurrent(concurrency, [
+    run,
+    run,
+    run,
+    run,
+    run,
+    run,
+    run,
+    run,
+    run,
+    run,
+    run
+  ]);
+
   return ret;
 }
 var expected = {
@@ -86,8 +121,10 @@ var expected = {
   subtask: 4,
   guard: 1
 }
+var ran = false;
 // make it run!
 runner(task, (err, val) => {
+  ran = true;
   assert(!err, 'there is not an error: ' + err);
   assert(val == ret, 'the return value is the same reference');
   var expectedKeys = Object.keys(expected).sort();
@@ -101,3 +138,4 @@ runner(task, (err, val) => {
     assert(expected[k] == counted[k], 'the ' + k + ' key is the same value for expected and counted');
   });
 });
+process.on('exit', _ => assert(ran), 'the test ran');
