@@ -2,17 +2,16 @@
   "name": "generator-runner",
   "version": "1.0.2",
   "description": "like a more generic task.js",
-  "main": "out/index.js",
+  "main": "lib/",
   "directories": {
     "test": "test"
   },
-  "dependencies": {
-    "traceur": "^0.0.82"
+  "devDependencies": {
+    "6to5": "^3.3.3",
+    "source-map-support": "^0.2.9"
   },
-  "devDependencies": {},
   "scripts": {
-    "prepublish": "traceur --dir ./lib ./out; traceur --dir ./test/lib ./test/out",
-    "pretest": "npm run prepublish",
+    "pretest": "6to5 ./test/lib --out-dir ./test/out --source-maps",
     "test": "node test/"
   },
   "repository": {

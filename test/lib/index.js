@@ -45,11 +45,11 @@ function* task(step) {
     c: _ => setTimeout($ => counter('parallel_key', _, null, parallel_key_ret.c))
   }
   for (var k in parallel_key_ret) {
-    assert(parallel_key_ret[k] == parallel_key_out[k]);
+    assert(parallel_key_ret[k] == parallel_key_out[k], k + ' to be the same');
   } 
   // need to check both (easier than checking keys  are the same in case of prototype changes)
   for (var k in parallel_key_out) {
-    assert(parallel_key_ret[k] == parallel_key_out[k]);
+    assert(parallel_key_ret[k] == parallel_key_out[k], k + ' to be the same');
   } 
 
   let subtask_ret = {};
@@ -95,9 +95,12 @@ function* task(step) {
   function run(_) {
     running += 1;
     assert(running <= concurrency);
-    _(null, running);
+    setTimeout($ => {
+      running -= 1;
+      counter('concurrent', _, null);
+    });
   }    
-  runner.concurrent(concurrency, [
+  yield runner.concurrent(concurrency, [
     run,
     run,
     run,
@@ -119,13 +122,14 @@ var expected = {
   parallel_arr: 2,
   parallel_key: 3,
   subtask: 4,
-  guard: 1
+  guard: 1,
+  concurrent: 11
 }
 var ran = false;
 // make it run!
 runner(task, (err, val) => {
   ran = true;
-  assert(!err, 'there is not an error: ' + err);
+  assert(!err, 'there is not an error: ' + err); 
   assert(val == ret, 'the return value is the same reference');
   var expectedKeys = Object.keys(expected).sort();
   var countedKeys = Object.keys(counted).sort();
