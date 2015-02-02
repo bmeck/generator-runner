@@ -10,7 +10,7 @@ function counter(k, fn, ...prefixargs) {
 }
 
 var ret;
-function* task(step) {
+function* task(step, abort) {
   let disjoint_ret = {};
   setTimeout(_ => counter('disjoint', step, null, disjoint_ret));
   let disjoint_out = yield step;
@@ -125,10 +125,11 @@ var expected = {
   guard: 1,
   concurrent: 11
 }
-var ran = false;
+var ran = 0;
+process.on('exit', _ => assert(ran == 2), 'the test ran');
 // make it run!
 runner(task, (err, val) => {
-  ran = true;
+  ran += 1;
   assert(!err, 'there is not an error: ' + err); 
   assert(val == ret, 'the return value is the same reference');
   var expectedKeys = Object.keys(expected).sort();
@@ -142,4 +143,41 @@ runner(task, (err, val) => {
     assert(expected[k] == counted[k], 'the ' + k + ' key is the same value for expected and counted');
   });
 });
-process.on('exit', _ => assert(ran), 'the test ran');
+
+let abort_ret = {};
+runner(function* abort_task(step, abort) {
+  try {
+    abort();
+    assert(false, 'abort without a value should throw');
+  }
+  catch (e) {
+    // haha need a value
+    assert(e, 'aborting without a value should throw');
+  }
+  let done = false;
+  setImmediate(_ => {
+    done = true;
+    abort(abort_ret);
+  });
+  setImmediate(_ => {
+    assert(done, 'we should be done already');
+    try {
+      // aborting when we are done is not an error
+      abort(abort_ret);
+    }
+    catch (e) {
+      assert(false, 'multiple aborts are allowed');
+    }
+  });
+  yield _ => setImmediate($ => {
+    try {
+      _();
+    }
+    catch (e) {
+      assert(e, 'continuing after an abort is not possible');
+    }
+  });
+}, function (err) {
+  ran += 1;
+  assert(err == abort_ret, 'aborting causes an error');
+});
