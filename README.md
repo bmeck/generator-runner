@@ -163,6 +163,23 @@ let [timeouts, promises] = yield [
 ];
 ```
 
+## racing 
+
+Although not complex, the ability to race for whatever the first task to finish
+is a common work flow.
+The race function will let you do this.
+It accepts either Arrays or Objects, though it will not preserve which index was
+the one to finish first.
+
+```javascript
+let race = require('generator-runner').race;
+yield race({
+  timeout: _ => setTimeout(() => _(new Error('timeout!'), 120 * 1000),
+  exit: _ => child.on('exit', _),
+  error: _ => child.on('error', _)
+});
+```
+
 ## limited concurrency
 
 Doing limited concurrency is actually a lot of book keeping;
