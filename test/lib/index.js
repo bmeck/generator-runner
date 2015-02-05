@@ -114,6 +114,16 @@ function* task(step, abort) {
     run
   ]);
 
+  let race_turtle = new Promise((f,r) => setTimeout($ => counter('race', f), 100));
+  let race_ret = {};
+  let race_out = yield runner.race({
+    fast: _ => setTimeout($ => counter('race', _, null, race_ret)),
+    slow: _ => race_turtle,
+    never_called: _ => {}
+  });
+  assert(race_ret == race_out);
+  yield race_turtle;
+
   return ret;
 }
 var expected = {
@@ -123,7 +133,8 @@ var expected = {
   parallel_key: 3,
   subtask: 4,
   guard: 1,
-  concurrent: 11
+  concurrent: 11,
+  race: 2
 }
 var ran = 0;
 process.on('exit', _ => assert(ran == 2), 'the test ran');
